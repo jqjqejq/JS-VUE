@@ -1,0 +1,18 @@
+indexOf()メソッドは、指定したキーワードの発見位置を返します。発見できなければ-1の数値を返すので、値が0より上であればキーワードが発見できたと分かります。
+iPhone/iPad/iPod/Android毎に処理を分けるには次のようにします。
+
+// iPhone
+if (navigator.userAgent.indexOf('iPhone') > 0) {
+  console.log('iphone')
+// iPad
+} else if (navigator.userAgent.indexOf('iPad') > 0) {
+  console.log('iPad')
+// iPod
+} else if (navigator.userAgent.indexOf('iPod') > 0) {
+  console.log('iPod')
+// Android
+} else if (navigator.userAgent.indexOf('Android') > 0) {
+  console.log('Android')
+}
+
+https://rfs.jp/sb/javascript/js-lab/smartphone_user-agent.html
