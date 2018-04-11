@@ -1,0 +1,250 @@
+src
+|--assets
+|--components
+|--css
+|--router
+    |--index.js
+|--store
+    |--fetch
+        |--api.js
+    |--modules
+        |--common.js
+    |--store.js
+    |--type.js
+    
+
+--------------main.js--------------
+// The Vue build version to load with the `import` command
+// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+import Vue from 'vue'
+import App from './App'
+import 'babel-polyfill'
+import axios from 'axios'
+import Vuetify from 'vuetify'
+import store from '@/store/store'
+import util from '@/utility/index'
+import 'vuetify/dist/vuetify.min.css'
+import { createRouter } from './router/index'
+import errorMsg from '@/components/parts/common/ErrorMessage'
+
+Vue.prototype.$ajax = axios
+Vue.prototype.$util = util
+Vue.use(Vuetify)
+Vue.component('error-msg', errorMsg)
+Vue.config.productionTip = false
+// debug model
+Vue.config.debug = false
+// with cookie
+axios.defaults.withCredentials = true
+
+axios.interceptors.request.use(function (config) {
+  store.dispatch('showloader')
+  return config
+}, function (err) {
+  return Promise.reject(err)
+})
+axios.interceptors.response.use(function (response) {
+  store.dispatch('hideloader')
+  return response
+}, function (err) {
+  return Promise.reject(err)
+})
+
+const router = createRouter()
+
+/* eslint-disable no-new */
+new Vue({
+  el: '#app',
+  router,
+  store,
+  components: { App },
+  template: '<App/>'
+})
+
+
+--------------store.js--------------
+import Vue from 'vue'
+import Vuex from 'vuex'
+import common from './modules/common.js'
+
+Vue.use(Vuex)
+export default new Vuex.Store({
+  strict: process.env.NODE_ENV !== 'production',
+  modules: {
+    common
+  }
+})
+
+--------------type.js--------------
+export const SHOWLOADING = 'SHOWLOADING'
+export const HIDELOADING = 'HIDELOADING'
+
+
+--------------modules--common.js--------------
+import * as types from '../type.js'
+let _storage = window.localStorage
+
+export const isStorage = _storage && _storage instanceof Storage &&
+  (_storage.setItem('isStorage', '1'),
+  _storage.getItem('isStorage') === '1')
+
+if (isStorage) {
+  window.onunload = function () {
+    localStorage.clear()
+  }
+}
+const state = {
+  showLoading: false
+}
+
+const actions = {
+  showloader: ({ commit }) => {
+    commit(types.SHOWLOADING)
+  },
+  hideloader: ({ commit }) => {
+    commit(types.HIDELOADING)
+  },
+  clearAll: ({ commit }) => {
+    commit(types.CLEAR_ALL)
+  }
+}
+
+const mutations = {
+  [types.SHOWLOADING] (state) {
+    state.showLoading = true
+  },
+  [types.HIDELOADING] (state) {
+    state.showLoading = false
+  },
+  [types.CLEAR_ALL] (state) {
+    // TODO
+    state.ichiranInfo = {}
+    state.detailInfo = {}
+    if (isStorage) {
+      _storage.clear()
+    }
+  }
+}
+
+const getters = {
+  showLoading (state) {
+    return state.showLoading
+  }
+}
+
+export default {
+  state,
+  actions,
+  mutations,
+  getters
+}
+
+--------------fetch--api.js--------------
+import axios from 'axios'
+
+export function fetch (url, params) {
+  return new Promise((resolve, reject) => {
+    axios.post('http://localhost:8080' + url, params)
+            .then(response => {
+              resolve(response.data)
+            })
+            .catch((error) => {
+              console.log(error)
+              reject(error)
+            })
+  })
+}
+
+export default {
+  post (url, params) {
+    return fetch(url, params)
+  }
+}
+
+-------------router-----index.js-------------------
+import Vue from 'vue'
+import Router from 'vue-router'
+
+Vue.use(Router)
+
+function route (path, name) {
+  return {
+    path: path,
+    name: name,
+    component: resolve => import(`@/components/page/${name}.vue`).then(resolve)
+  }
+}
+
+export function createRouter () {
+  const router = new Router({
+    base: __dirname,
+    mode: 'history',
+    scrollBehavior: () => ({ y: 0 }),
+    routes: [
+      route('/404', '404'),
+      route('/500', '500'),
+      route('/', 'Menu'),
+      route('/ichiran', 'Ichiran'),
+      route('/detail', 'Detail'),
+      route('/answer', 'Answer'),
+      // Global redirect for 404
+      { path: '*', redirect: '/404' }
+    ]
+  })
+
+  return router
+}
+
+
+--------------App.vue----------------
+<template>
+  <v-app light>
+    <v-layout>
+      <v-flex xs12>
+        <Loading v-show="showLoading" />
+        <router-view/>
+      </v-flex>
+    </v-layout>
+  </v-app>
+</template>
+
+<script>
+import Loading from '@/components/parts/common/Loading'
+import { mapGetters } from 'vuex'
+
+export default {
+  name: 'app',
+  components: {
+    Loading
+  },
+  computed: mapGetters([
+    'showLoading'
+  ])
+}
+</script>
+
+<style>
+  .list{
+    padding: 0;
+  }
+</style>
+
+
+---------------------Lodding.vue---------------------
+<template>
+  <div class="loading" >
+    <div class="loader" >
+    <div class="dot" />
+    <div class="dot" />
+    <div class="dot" />
+    <div class="dot" />
+    <div class="dot" />
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'loading'
+}
+</script>
