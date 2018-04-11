@@ -25,7 +25,6 @@ import store from '@/store/store'
 import util from '@/utility/index'
 import 'vuetify/dist/vuetify.min.css'
 import { createRouter } from './router/index'
-import errorMsg from '@/components/parts/common/ErrorMessage'
 
 Vue.prototype.$ajax = axios
 Vue.prototype.$util = util
