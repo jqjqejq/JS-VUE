@@ -1,0 +1,40 @@
+import Vue from 'vue'
+import Router from 'vue-router'
+// The meta data for your routes
+import meta from './meta.json'
+
+Vue.use(Router)
+
+function route (path, name) {
+  return {
+    path: path,
+    name: name,
+    meta: meta[path],
+    component: resolve => import(`@/components/page/${name}.vue`).then(resolve)
+  }
+}
+
+export function createRouter () {
+  const router = new Router({
+    base: '/sample', // 加上这一行之后，地址栏会变为：http://localhost:8888/sample
+    mode: 'history',
+    scrollBehavior: () => ({ y: 0 }),
+    routes: [
+      route('/404', '404'),
+      route('/500', '500'),
+      route('/', 'Menu'),
+      route('/ichiran', 'Ichiran'),
+      route('/detail', 'Detail'),
+      route('/answer', 'Answer'),
+      // Global redirect for 404
+      { path: '*', redirect: '/404' }
+    ]
+  })
+
+  return router
+}
+
+button to的时候会默认带/sample
+<v-btn block color="secondary" router to="/Ichiran" @click="initState">
+会跳转到一览画面：http://localhost:8888/sample/ichiran
+
